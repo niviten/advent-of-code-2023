@@ -19,6 +19,7 @@ func Day03() {
 	fileScanner.Split(bufio.ScanLines)
 
 	result1 := 0
+	result2 := 0
 
 	var prevLine string
 	var currLine string
@@ -36,10 +37,12 @@ func Day03() {
 			nextLine = ""
 		}
 		result1 = result1 + part1(prevLine, currLine, nextLine)
+		result2 = result2 + part2(prevLine, currLine, nextLine)
 		prevLine = currLine
 	}
 
 	fmt.Printf("result1 -> %d\n", result1)
+	fmt.Printf("result2 -> %d\n", result2)
 }
 
 func part1(prevLine string, currLine string, nextLine string) int {
@@ -62,6 +65,65 @@ func part1(prevLine string, currLine string, nextLine string) int {
 	}
 
 	return sum
+}
+
+func part2(prevLine string, currLine string, nextLine string) int {
+	if len(currLine) == 0 {
+		return 0
+	}
+
+	prevLineNumberSequences := parseLine(prevLine)
+	currLineNumberSequences := parseLine(currLine)
+	nextLineNumberSequences := parseLine(nextLine)
+
+	sum := 0
+
+	for index, ch := range currLine {
+		if ch == '*' {
+			s1 := getHits(prevLineNumberSequences, index)
+			s2 := getHits(currLineNumberSequences, index)
+			s3 := getHits(nextLineNumberSequences, index)
+
+			if (len(s1) + len(s2) + len(s3)) == 2 {
+				product := 1
+				for _, s := range s1 {
+					product = product * prevLineNumberSequences[s].value
+				}
+				for _, s := range s2 {
+					product = product * currLineNumberSequences[s].value
+				}
+				for _, s := range s3 {
+					product = product * nextLineNumberSequences[s].value
+				}
+				sum = sum + product
+			}
+		}
+	}
+
+	return sum
+}
+
+func getHits(numberSequences []NumberSequence, index int) []int {
+	var hitIndexList []int
+
+	var hit bool
+	var hitIndex int
+
+	hit, hitIndex = isHit(numberSequences, index)
+	if hit {
+		hitIndexList = append(hitIndexList, hitIndex)
+	} else {
+		hit, hitIndex = isHit(numberSequences, index-1)
+		if hit {
+			hitIndexList = append(hitIndexList, hitIndex)
+		}
+		hit, hitIndex = isHit(numberSequences, index+1)
+		if hit {
+			hitIndexList = append(hitIndexList, hitIndex)
+		}
+	}
+
+	return hitIndexList
 }
 
 func processNumberSequences(numberSequences []NumberSequence, index int) int {
